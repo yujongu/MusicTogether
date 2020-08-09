@@ -30,7 +30,7 @@ public class verifyPasscodeServlet extends HttpServlet {
 		String pcode = request.getParameter("passcode");
 		
 		if(roomDAO.checkPasscode(rid, pcode)) {
-			response.sendRedirect("LoggedIn");
+			response.sendRedirect("Playlist.jsp?rID=" + rid);
 		} else {
 			session.setAttribute("InvalidPasscode", "Passcode for the playlist was invalid.");
 			response.sendRedirect("MusicTogether.jsp");

@@ -16,6 +16,8 @@ public class UserDAO {
 
 	private String selectUserSQL = "SELECT * FROM user WHERE uname=? and pword=?;";
 	private String selectUsernameSQL = "SELECT uname FROM user WHERE uname=?;";
+	private String selectUserIDSQL = "SELECT UserID FROM user WHERE uname=?;";
+	private String retrieveUserNameSQL = "SELECT uname FROM user WHERE UserID=?;";
 	private String createUserSQL = "INSERT INTO user (uname, pword) VALUES (?, ?);";
 	
 
@@ -84,6 +86,59 @@ public class UserDAO {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public int getUserID(String name) {
+		int id = -1;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con = DriverManager.getConnection(url, username, password);
+
+			PreparedStatement st = con.prepareStatement(selectUserIDSQL);
+			st.setNString(1, name);
+			
+			ResultSet rs = st.executeQuery();
+			if(rs.next()) {
+				id = rs.getInt("UserID");
+				return id;
+			}
+			
+			
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return id;
+	}
+	
+	public String getUserName(int uid) {
+		String uname;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con = DriverManager.getConnection(url, username, password);
+
+			PreparedStatement st = con.prepareStatement(retrieveUserNameSQL);
+			st.setInt(1, uid);
+			
+			ResultSet rs = st.executeQuery();
+			if(rs.next()) {
+				uname = rs.getNString("uname");
+				return uname;
+			}
+			
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 }
