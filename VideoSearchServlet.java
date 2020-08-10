@@ -26,6 +26,10 @@ public class VideoSearchServlet extends HttpServlet {
 		
 		String rid = request.getParameter("rID");
 		String query = request.getParameter("keyword");
+		if(query == null) {
+			response.sendRedirect("Playlist.jsp?rID=" + rid);
+			return;
+		}
 		VideoFetchAPI api = new VideoFetchAPI();
 		
 		ArrayList<Video> vidList = new ArrayList<Video>();

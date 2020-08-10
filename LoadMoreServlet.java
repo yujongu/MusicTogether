@@ -29,6 +29,10 @@ public class LoadMoreServlet extends HttpServlet {
 		String rid = request.getParameter("rID");
 		String nextPageTag = (String) session.getAttribute("nextPage");
 		String query = (String) session.getAttribute("query");
+		if(query == null) {
+			response.sendRedirect("Playlist.jsp?rID=" + rid);
+			return;
+		}
 		
 		VideoFetchAPI api = new VideoFetchAPI();
 		try {

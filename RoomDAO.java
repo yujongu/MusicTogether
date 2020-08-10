@@ -17,6 +17,7 @@ public class RoomDAO {
 	private String createPListSQL = "INSERT INTO room (UserID, RoomName, CreatedDate, isPrivate, passcode, MusicList) VALUES "
 			+ "(?, ?, curdate(), ?, ?, \"\");";
 	private String retrieveRoomSQL = "SELECT * FROM room WHERE RoomID=?;";
+	private String insertMusicSQL = "UPDATE room SET MusicList = CONCAT(MusicList, ?) WHERE RoomID = ?;";
 
 	UserDAO userDAO;
 
@@ -114,5 +115,26 @@ public class RoomDAO {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public void insertMusic(String vid, int rid) {
+		vid = vid + ",";
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			Connection con = DriverManager.getConnection(url, username, password);
+
+			PreparedStatement st = con.prepareStatement(insertMusicSQL);
+			st.setNString(1, vid);
+			st.setInt(2, rid);
+
+			st.executeUpdate();
+
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

@@ -26,32 +26,43 @@
 		$('[data-toggle="popover"]').popover()
 	})
 </script>
+
+
 <title>Music Together</title>
 </head>
 <body>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#passcodeModal').on('show.bs.modal', function(e) {
 
+				var rid = $(e.relatedTarget).data('r-id');
+
+				$(e.currentTarget).find('input[name="rid"]').val(rid);
+			});
+		});
+	</script>
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-3">
 				<h1>Music Together</h1>
-				<form action="CreatePlaylist.jsp">
-					<c:if test="${not empty username }">
-						<input type="submit" class="btn btn-outline-warning"
-							value="Create a playlist" />
-					</c:if>
 
-					<c:if test="${empty username }">
-						<a tabindex="0" class="btn btn-outline-warning" role="button"
-							data-toggle="popover" data-trigger="focus" title="Login required"
-							data-content="Please login to create your own playlist.">Create
-							a playlist</a>
-					</c:if>
+				<c:if test="${not empty username }">
+					<button type="button" class="btn btn-outline-warning"
+						data-toggle="modal" data-target="#playlistModal">Create a
+						playlist</button>
+				</c:if>
 
-				</form>
+				<c:if test="${empty username }">
+					<a tabindex="0" class="btn btn-outline-warning" role="button"
+						data-toggle="popover" data-trigger="focus" title="Login required"
+						data-content="Please login to create your own playlist.">Create
+						a playlist</a>
+				</c:if>
+
+
 			</div>
 
 			<div class="col-9">
-
 				<c:if test="${not empty InvalidPasscode }">
 					<div class="alert alert-warning alert-dismissible fade show"
 						role="alert">
@@ -177,27 +188,23 @@
 					<tbody>
 						<c:forEach items="${rs.rows}" var="row">
 							<tr>
-
 								<td><c:out value="${row.RoomID}"></c:out></td>
-								<c:set var="rid" value="${row.RoomID }" scope="session" />
-
 								<c:if test="${row.isPrivate}">
-									<td><a class="active" data-toggle="modal"
-										href="#passcodeModal"
-										onclick="document.getElementById('passcodeInput').value = ''">
-											<c:out value="${row.RoomName }"></c:out> <c:set var="rid"
-												value="${row.RoomID }" />
+									<td><a href="#passcodeModal" class="active"
+										data-toggle="modal" data-r-id="${row.RoomID }"
+										onclick="document.getElementById('passcodeInput').value = ''; ">
+											<c:out value="${row.RoomName }"></c:out>
 									</a></td>
 								</c:if>
 								<c:if test="${!row.isPrivate}">
-									<td><a href="/MusicTogether/LoggedIn?rID=${row.RoomID }"
-										onclick="document.getElementById('passcodeInput').value = ''">
+									<td><a href="/MusicTogether/Playlist.jsp?rID=${row.RoomID }"
+										onclick="document.getElementById('passcodeInput').value = '';">
 											<c:out value="${row.RoomName }"></c:out>
 									</a></td>
 								</c:if>
 
 								<sql:query var="user" dataSource="${db }">SELECT uname FROM user where UserID=?
-								<sql:param value="${row.RoomID }" />
+								<sql:param value="${row.UserID }" />
 								</sql:query>
 
 								<c:forEach items="${user.rows}" var="user">
@@ -215,6 +222,8 @@
 				</table>
 			</div>
 		</div>
+
+
 		<div class="modal fade" id="passcodeModal" tabindex="-1" role="dialog"
 			aria-labelledby="passcodeModalLabel" aria-hidden="true">
 			<div class="modal-dialog">
@@ -235,13 +244,52 @@
 									Passcode:</label> <input class="form-control form-control-lg"
 									id="passcodeInput" type="number" name="passcode" max="9999"
 									placeholder="####"> <input type="hidden" name="rid"
-									value="${rid}">
+									value="" />
 							</div>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-secondary"
 								data-dismiss="modal">Close</button>
 							<input type="submit" class="btn btn-primary" value="Verify">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="playlistModal" tabindex="-1" role="dialog"
+			aria-labelledby="playlistModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Create your
+							own playlist</h5>
+						<button type="button" class="close" data-dismiss="modal"
+							aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<form action="cPlayList" method="post">
+						<div class="modal-body">
+							<div class="form-group">
+								<label for="playlistInput" class="col-form-label">Enter
+									playlist name:</label> <input class="form-control form-control-lg"
+									id="playlistInput" type="text" name="pName"
+									placeholder="Playlist Name">
+							</div>
+
+							<div class="form-group">
+								<label for="pcodeInput" class="col-form-label">Enter
+									passcode for private. Leave it empty for public :</label> <input
+									class="form-control form-control-lg" id="pcodeInput"
+									type="number" name="passcode" max="9999" placeholder="####">
+								<input type="hidden" name="owner" value="${username}">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary"
+								data-dismiss="modal">Close</button>
+							<input type="submit" class="btn btn-primary" value="Create">
 						</div>
 					</form>
 				</div>
