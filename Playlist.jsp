@@ -27,7 +27,7 @@
 	integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
 	crossorigin="anonymous"></script>
 
-<title>Insert title here</title>
+<title>Playlist</title>
 <style>
 #bottom {
 	position: absolute;
@@ -50,17 +50,23 @@ div.list-group {
 	String playlistName = room.getName();
 	String owner = room.getOwner();
 	Date createdDate = room.getCreatedDate();
-	ArrayList<String> musics = new ArrayList<String>(Arrays.asList(room.getMusicList().split(",")));
+	String musicListString = room.getMusicList();
+	ArrayList<String> musics = new ArrayList<String>(Arrays.asList(musicListString.split(",")));
 	VideoFetchAPI videoAPI = new VideoFetchAPI();
-	ArrayList<Video> vidResult = videoAPI.getVideoInfo(musics);
+	int musicCount = 0;
+	ArrayList<Video> vidResult = new ArrayList<Video>();
+	if (musics.get(0).length() > 0) {
+		vidResult = videoAPI.getVideoInfo(musics);
+		musicCount = musics.size();
+	}
 	%>
-	<div class=container-fluid>
+	<div class="container-fluid">
 		<h1>
 			<span class="align-middle"><%=playlistName%></span>
 		</h1>
 
-		<div class=row>
-			<div class=col-4>
+		<div class="row">
+			<div class="col-4">
 
 				<h4>
 					Created by
@@ -68,24 +74,28 @@ div.list-group {
 					<h4>
 						Created on
 						<%=createdDate%></p>
-						<h4>${fn:length(music)}
+						<h4><%=musicCount%>
 							videos
 							</p>
 
 							<br>
 			</div>
-			<div class=col-5>
 
-				<div class="list-group list-group-horizontal-lg">
+			<%
+				int rowCount = 0;
+			if (musicCount > 0) {
+				rowCount = (musicCount - 1) / 4;
+			}
+			%>
+
+			<div class="col-5">
+				<div class="row row-cols-4">
 					<c:forEach items="<%=vidResult%>" var="video">
-						<img class="list-group-item" src="${video.imgURL }" width="120" height="90" />
+						<img class="col" src="${video.imgURL }" width="120" height="90" />
 					</c:forEach>
 				</div>
-
-
-
 			</div>
-			<div class=col-3>
+			<div class="col-3">
 				<form class="form-inline" action="VideoSearch" method="get">
 					<div class="form-group mx-sm-3 mb-2">
 						<c:if test="${not empty query }">
@@ -137,10 +147,81 @@ div.list-group {
 		</div>
 
 		<div id="bottom">
-			<iframe width="450" height="270"
-				src="https://www.youtube.com/embed/jSxGUmPaIR8" frameborder="0"
-				allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-				allowfullscreen></iframe>
+			<input type="hidden" id="musicListString"
+				value="<%=musicListString%>" />
+
+			<div id="player"></div>
+			<script>
+				// 2. This code loads the IFrame Player API code asynchronously.
+				var mlist = document.getElementById("musicListString").value;
+				mlist = mlist.split(",");
+				var mCount = 0;
+				if(mlist[0].length > 0){
+					mCount = mlist.length - 1;
+				}
+				
+				var tag = document.createElement('script');
+
+				tag.src = "https://www.youtube.com/iframe_api";
+				var firstScriptTag = document.getElementsByTagName('script')[0];
+				firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+				// 3. This function creates an <iframe> (and YouTube player)
+				//    after the API code downloads.
+				var player;
+				var currInd = 0;
+				function onYouTubeIframeAPIReady() {
+					player = new YT.Player('player', {
+						height : '270',
+						width : '450',
+						videoId : mlist[currInd],
+						events : {
+							'onReady' : onPlayerReady,
+							'onStateChange' : onPlayerStateChange,
+							'onError' : onPlayerError
+						}
+					});
+				}
+
+				// 4. The API will call this function when the video player is ready.
+				function onPlayerReady(event) {
+					if (currInd > 0) {
+						event.target.playVideo();
+					}
+				}
+
+				// 5. The API calls this function when the player's state changes.
+				//    The function indicates that when playing a video (state=1),
+				//    the player should play for six seconds and then stop.
+				var done = false;
+				function onPlayerStateChange(event) {
+					if (event.data == YT.PlayerState.PLAYING && !done) {
+						if(mCount == 0){
+							alert("Please add some music");
+						}
+					}
+					if (event.data == YT.PlayerState.ENDED) {
+						currInd++;
+						if(currInd >= mCount){
+							alert("Returning to the beginning");
+							currInd = 0;
+						}
+						player.loadVideoById(mlist[currInd], 0, "large");
+					}
+					
+					
+				}
+				
+				function onPlayerError(event){
+					if(mCount < 1){
+						alert("Please add some music into the playlist");
+						return;
+					}
+				}
+				function stopVideo() {
+					player.stopVideo();
+				}
+			</script>
 		</div>
 	</div>
 
